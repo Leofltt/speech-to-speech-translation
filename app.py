@@ -22,7 +22,7 @@ speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze
 
 
 def translate(audio):
-    outputs = asr_pipe(audio, max_new_tokens=256, generate_kwargs={"task": "translate"})
+    outputs = asr_pipe(audio, max_new_tokens=256, generate_kwargs={"task": "transcribe", "language": "it"})
     return outputs["text"]
 
 
