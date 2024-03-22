@@ -8,32 +8,33 @@ from transformers import BarkModel, BarkProcessor
 
 from transformers import Speech2TextProcessor, Speech2TextForConditionalGeneration
 
-SAMPLE_RATE = 16000
-
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-# asr_model = Speech2TextForConditionalGeneration.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
-# asr_processor = Speech2TextProcessor.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
+# asr_pipe = pipeline("automatic-speech-recognition", model="facebook/s2t-medium-mustc-multilingual-st", device=device)
 
-asr_pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
+asr_model = Speech2TextForConditionalGeneration.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
+asr_processor = Speech2TextProcessor.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
 
+asr_model.to(device)
 
-bark_model = BarkModel.from_pretrained("suno/bark")
-bark_processor = BarkProcessor.from_pretrained("suno/bark")
+bark_model = BarkModel.from_pretrained("suno/bark-small")
+bark_processor = BarkProcessor.from_pretrained("suno/bark-small")
+
+bark_model.to(device)
 
 
 def translate(audio):
-    # inputs = asr_processor(audio, sampling_rate=16000, return_tensors="pt")
-    # generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"],
-    # forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id["it"],)
-    # translation = asr_processor.batch_decode(generated_ids, skip_special_tokens=True)
-    translation = asr_pipe(audio, max_new_tokens=256, generate_kwargs={"task": "transcribe",  "language": "it"})
-    return translation["text"]
+    inputs = asr_processor(audio, sampling_rate=16000, return_tensors="pt")
+    generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"], 
+                                       forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id['it'],)
+    translation = asr_processor.batch_decode(generated_ids, skip_special_tokens=True)
+    return translation
 
 
 def synthesise(text):
     inputs = bark_processor(text=text, voice_preset="v2/it_speaker_4",return_tensors="pt")
     speech = bark_model.generate(**inputs, do_sample=True)
+    speech = speech.cpu().numpy().squeeze()
     return speech
 
 
@@ -41,7 +42,7 @@ def speech_to_speech_translation(audio):
     translated_text = translate(audio)
     synthesised_speech = synthesise(translated_text)
     synthesised_speech = (synthesised_speech.numpy() * 32767).astype(np.int16)
-    return SAMPLE_RATE, synthesised_speech
+    return 16000, synthesised_speech
 
 
 title = "Cascaded STST"
@@ -56,7 +57,7 @@ demo = gr.Blocks()
 
 mic_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(source="microphone", type="filepath"),
+    inputs=gr.Audio(sources="microphone", type="filepath"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     title=title,
     description=description,
@@ -64,7 +65,7 @@ mic_translate = gr.Interface(
 
 file_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(source="upload", type="filepath"),
+    inputs=gr.Audio(sources="upload", type="filepath"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     examples=[["./example.wav"]],
     title=title,
