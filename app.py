@@ -6,25 +6,30 @@ from datasets import load_dataset
 from transformers import pipeline
 from transformers import BarkModel, BarkProcessor
 
+from transformers import Speech2TextProcessor, Speech2TextForConditionalGeneration
 
+SAMPLE_RATE = 16000
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-# load speech translation checkpoint
-asr_pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
+asr_model = Speech2TextForConditionalGeneration.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
+asr_processor = Speech2TextProcessor.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
 
-barkmodel = BarkModel.from_pretrained("suno/bark")
-barkprocessor = BarkProcessor.from_pretrained("suno/bark")
+bark_model = BarkModel.from_pretrained("suno/bark")
+bark_processor = BarkProcessor.from_pretrained("suno/bark")
 
 
 def translate(audio):
-    outputs = asr_pipe(audio, max_new_tokens=256, generate_kwargs={"task": "transcribe", "language": "it"})
-    return outputs["text"]
+    inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
+    generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"],
+    forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id["it"],)
+    translation = processor.batch_decode(generated_ids, skip_special_tokens=True)
+    return translation
 
 
 def synthesise(text):
-    inputs = barkprocessor(text=[text], voice_preset="v2/it_speaker_4",return_tensors="pt")
-    speech = barkmodel.generate(**inputs, do_sample=True)
+    inputs = bark_processor(text=text, voice_preset="v2/it_speaker_4",return_tensors="pt")
+    speech = bark_model.generate(**inputs, do_sample=True)
     return speech
 
 
@@ -32,7 +37,7 @@ def speech_to_speech_translation(audio):
     translated_text = translate(audio)
     synthesised_speech = synthesise(translated_text)
     synthesised_speech = (synthesised_speech.numpy() * 32767).astype(np.int16)
-    return 16000, synthesised_speech
+    return SAMPLE_RATE, synthesised_speech
 
 
 title = "Cascaded STST"
