@@ -23,7 +23,7 @@ def translate(audio):
     inputs = asr_processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
     generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"],
     forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id["it"],)
-    translation = processor.batch_decode(generated_ids, skip_special_tokens=True)
+    translation = asr_processor.batch_decode(generated_ids, skip_special_tokens=True)
     return translation
 
 
