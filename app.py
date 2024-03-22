@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from datasets import load_dataset
 
-from transformers import SpeechT5ForTextToSpeech, SpeechT5HifiGan, SpeechT5Processor, pipeline
+from transformers import pipeline
 from transformers import BarkModel, BarkProcessor
 
 
@@ -13,17 +13,8 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 # load speech translation checkpoint
 asr_pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
 
-# load text-to-speech checkpoint and speaker embeddings
-# processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
-
 barkmodel = BarkModel.from_pretrained("suno/bark")
 barkprocessor = BarkProcessor.from_pretrained("suno/bark")
-
-# model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts").to(device)
-# vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan").to(device)
-
-embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
-speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
 
 
 def translate(audio):
