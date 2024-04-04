@@ -2,7 +2,7 @@ import gradio as gr
 import numpy as np
 import torch
 from datasets import load_dataset
-import torchaudio
+import librosa
 
 from transformers import pipeline
 from transformers import BarkModel, BarkProcessor
@@ -25,8 +25,7 @@ bark_model.to(device)
 def translate(audio):
     sr, y = audio
     if sr != 16000:
-        resampler = torchaudio.transforms.Resample(sr, 16000, dtype=y.dtype)
-        y = resampler(y)
+        y = librosa.resample(y, sr, 16000)
     y = y.astype(np.float32)
     y /= np.max(np.abs(y))
     inputs = asr_processor(y, sampling_rate=16000, return_tensors="pt")
