@@ -2,3 +2,4 @@ torch
 git+https://github.com/huggingface/transformers
 datasets
 sentencepiece
+librosa
