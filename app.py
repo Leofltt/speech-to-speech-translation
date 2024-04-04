@@ -55,7 +55,7 @@ demo = gr.Blocks()
 
 mic_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(sources="microphone", type="filepath"),
+    inputs=gr.Audio(source="microphone", type="filepath"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     title=title,
     description=description,
@@ -63,7 +63,7 @@ mic_translate = gr.Interface(
 
 file_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(sources="upload", type="filepath"),
+    inputs=gr.Audio(source="upload", type="filepath"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     examples=[["./example.wav"]],
     title=title,
