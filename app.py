@@ -22,7 +22,12 @@ bark_model.to(device)
 
 
 def translate(audio):
-    inputs = asr_processor(audio, sampling_rate=16000, return_tensors="pt")
+    sr, y = audio
+    # if sr != 16000:
+    #     y = torchaudio.resample(y, sr, 16000)
+    y = y.astype(np.float32)
+    y /= np.max(np.abs(y))
+    inputs = asr_processor(y, sampling_rate=16000, return_tensors="pt")
     generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"], 
                                        forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id['it'],)
     translation = asr_processor.batch_decode(generated_ids, skip_special_tokens=True)
@@ -55,7 +60,7 @@ demo = gr.Blocks()
 
 mic_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(source="microphone", type="filepath"),
+    inputs=gr.Audio(source="microphone"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     title=title,
     description=description,
@@ -63,7 +68,7 @@ mic_translate = gr.Interface(
 
 file_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(source="upload", type="filepath"),
+    inputs=gr.Audio(source="upload"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     examples=[["./example.wav"]],
     title=title,
