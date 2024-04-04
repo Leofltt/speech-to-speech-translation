@@ -24,7 +24,7 @@ bark_model.to(device)
 
 def translate(audio):
     inputs = asr_processor(audio, sampling_rate=16000, return_tensors="pt")
-    output_tokens = asr_model.generate(**inputs, tgt_lang="it", generate_speech=False)
+    output_tokens = asr_model.generate(**inputs, tgt_lang="ita", generate_speech=False)
     translation = asr_processor.decode(output_tokens[0].tolist()[0], skip_special_tokens=True)
     return translation
 
