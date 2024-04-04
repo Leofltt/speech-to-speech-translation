@@ -6,14 +6,13 @@ from datasets import load_dataset
 from transformers import pipeline
 from transformers import BarkModel, BarkProcessor
 
-from transformers import Speech2TextProcessor, Speech2TextForConditionalGeneration
+from transformers import AutoProcessor, SeamlessM4Tv2Model
+
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-# asr_pipe = pipeline("automatic-speech-recognition", model="facebook/s2t-medium-mustc-multilingual-st", device=device)
-
-asr_model = Speech2TextForConditionalGeneration.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
-asr_processor = Speech2TextProcessor.from_pretrained("facebook/s2t-medium-mustc-multilingual-st")
+asr_model = SeamlessM4Tv2Model.from_pretrained("facebook/seamless-m4t-v2-large")
+asr_processor = AutoProcessor.from_pretrained("facebook/seamless-m4t-v2-large")
 
 asr_model.to(device)
 
@@ -25,9 +24,8 @@ bark_model.to(device)
 
 def translate(audio):
     inputs = asr_processor(audio, sampling_rate=16000, return_tensors="pt")
-    generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"], 
-                                       forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id['it'],)
-    translation = asr_processor.batch_decode(generated_ids, skip_special_tokens=True)
+    output_tokens = asr_model.generate(**inputs, tgt_lang="it", generate_speech=False)
+    translation = asr_processor.decode(output_tokens[0].tolist()[0], skip_special_tokens=True)
     return translation
 
 
