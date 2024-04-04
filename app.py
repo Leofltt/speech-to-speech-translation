@@ -24,10 +24,10 @@ bark_model.to(device)
 
 def translate(audio):
     sr, y = audio
-    if sr != 16000:
-        y = librosa.resample(y, orig_sr=sr, target_sr=16000)
     y = y.astype(np.float32)
     y /= np.max(np.abs(y))
+    if sr != 16000:
+        y = librosa.resample(y, orig_sr=sr, target_sr=16000)
     inputs = asr_processor(y, sampling_rate=16000, return_tensors="pt")
     generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"], 
                                        forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id['it'],)
