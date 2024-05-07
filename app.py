@@ -32,6 +32,8 @@ def translate(audio):
     generated_ids = asr_model.generate(inputs["input_features"],attention_mask=inputs["attention_mask"], 
                                        forced_bos_token_id=asr_processor.tokenizer.lang_code_to_id['it'],)
     translation = asr_processor.batch_decode(generated_ids, skip_special_tokens=True)
+    _, parsedTranslation = translation[0].split(")", 1)
+    translation[0] = parsedTranslation
     return translation
 
 
@@ -61,7 +63,7 @@ demo = gr.Blocks()
 
 mic_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(source="microphone"),
+    inputs=gr.Audio(sources="microphone"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     title=title,
     description=description,
@@ -69,7 +71,7 @@ mic_translate = gr.Interface(
 
 file_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(source="upload"),
+    inputs=gr.Audio(sources="upload"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
     examples=[["./example.wav"]],
     title=title,
