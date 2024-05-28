@@ -52,11 +52,9 @@ def speech_to_speech_translation(audio):
 
 
 title = "Cascaded STST"
-description = """
+description = """i
 Demo for cascaded speech-to-speech translation (STST), mapping from source speech in any language to target speech in Italian. Demo uses Meta's [Speech2Text](https://huggingface.co/facebook/s2t-medium-mustc-multilingual-st) model for speech translation, and Suno's
 [Bark](https://huggingface.co/suno/bark) model for text-to-speech:
-
-![Cascaded STST](https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st_cascaded.png "Diagram of cascaded speech to speech translation")
 """
 
 demo = gr.Blocks()
@@ -73,7 +71,7 @@ file_translate = gr.Interface(
     fn=speech_to_speech_translation,
     inputs=gr.Audio(sources="upload"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
-    examples=[["./example.wav"]],
+    examples=[["./example_en.mp3"]],
     title=title,
     description=description,
 )
